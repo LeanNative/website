@@ -25,8 +25,8 @@
     </a>
     <nav aria-label="Main">
       <a href="#how">How it works</a>
-      <a href="#status">Status</a>
       <a href="#trust">What to trust</a>
+      <a href="https://github.com/LeanNative/leannative/issues">Issues</a>
       <a href="https://github.com/LeanNative/leannative">GitHub</a>
     </nav>
   </header>
@@ -41,7 +41,7 @@
           <a class="btn primary" href="https://github.com/LeanNative/leannative">View on GitHub</a>
           <a class="btn" href="https://github.com/LeanNative/leannative/tree/main/examples/native-demo">Try native-demo</a>
         </div>
-        <p class="fine">Open source. Formerly ElmLean. Early and moving fast: <a href="#status">see what is done and what is not</a>.</p>
+        <p class="fine">Open source. Formerly ElmLean. <a href="https://github.com/winnowwallet/winnow-lean">Winnow</a>, a Bitcoin wallet written in Lean, runs on it. Early and moving fast: what is left is in the <a href="https://github.com/LeanNative/leannative/issues">issues</a>.</p>
       </div>
       <figure style="margin:0">
         <div class="device" role="img" aria-label="An illustration of a counter app showing Count: 3 with plus one and reset buttons">
@@ -124,28 +124,6 @@
       </div>
     </section>
 
-    <section id="status" aria-labelledby="st-h">
-      <h2 id="st-h">Where it stands</h2>
-      <p class="sub">Updated 30 October 2026. The pieces below were extracted from a real app, <a href="https://github.com/winnowwallet/winnow-lean">Winnow</a>, a Bitcoin wallet written in Lean, and Winnow now runs on them.</p>
-      <div class="scroll">
-      <table>
-        <thead><tr><th>Piece</th><th>Status</th><th>Notes</th></tr></thead>
-        <tbody>
-          <tr><td class="name">Core: views, sessions, <code>Spec</code>, proofs</td><td><span class="chip ok">Working</span></td><td>Axiom-gated theorems about dispatch, sessions and invariants.</td></tr>
-          <tr><td class="name">UIKit shell and capabilities</td><td><span class="chip ok">Working</span></td><td>iOS simulator, iPhone (Winnow on TestFlight) and Mac Catalyst on Apple silicon: Catalyst UI tests in CI, and a team-signed run with the real Keychain and Bluetooth LE to a Ledger Nano X. <small>The Catalyst build is universal; Intel Macs are not tested.</small></td></tr>
-          <tr><td class="name">Background run</td><td><span class="chip ok">Merged</span></td><td>Race-tested with controllable gates. Winnow's background chain checks run on it.</td></tr>
-          <tr><td class="name">Typed platform clients</td><td><span class="chip ok">Merged</span></td><td>Tested against independent wire fixtures and the real shell. Adds an atomic create-only Keychain operation. Winnow uses the Keychain, HTTPS, CloudKit and Bluetooth clients.</td></tr>
-          <tr><td class="name">Test evidence exporter</td><td><span class="chip ok">Merged</span></td><td>Records the tested revision when the tests run, not when you export, and leaves out a recording that is too short for the run instead of publishing it.</td></tr>
-          <tr><td class="name">XCTest helper kit</td><td><span class="chip ok">Merged</span></td><td>native-demo's UI tests on iOS and Mac Catalyst, and Winnow's UI journeys.</td></tr>
-          <tr><td class="name">Scoped effects and authentication</td><td><span class="chip ok">Merged</span></td><td>Winnow prepares its iCloud backup in one, across the Face ID prompt.</td></tr>
-          <tr><td class="name">App manifest</td><td><span class="chip ok">Merged</span></td><td>An app describes its Xcode project once, in Lean; generation refuses a capability the app uses without its usage text or entitlement. Winnow's move onto it is in review.</td></tr>
-          <tr><td class="name">Winnow on LeanNative</td><td><span class="chip ok">Shipped</span></td><td>Winnow 0.9.3 and 0.9.4 are built on LeanNative and on TestFlight. Winnow keeps its own repository and identity.</td></tr>
-          <tr><td class="name">Versioned rename of the <code>ElmLean</code> identifiers</td><td><span class="chip soon">Not scheduled</span></td><td>The package, modules and C symbols keep their old names so existing apps build unchanged.</td></tr>
-        </tbody>
-      </table>
-      </div>
-      <p class="fine">Progress and the full list of tickets are in the <a href="https://github.com/LeanNative/leannative/issues">issue tracker</a>.</p>
-    </section>
 
     <section id="trust" aria-labelledby="tr-h">
       <h2 id="tr-h">What is proven, and what is only tested</h2>
