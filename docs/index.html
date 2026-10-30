@@ -63,7 +63,7 @@
         <li><b>Write the app and its invariants in Lean.</b><span>Typed views can only emit messages <code>update</code> handles. You state the properties you need and prove that every message preserves them.</span></li>
         <li><b>Lean checks the proofs and compiles to C.</b><span>The same <code>update</code> and <code>view</code> run in headless tests and in the app. An axiom gate fails the build if a theorem leans on anything unexpected.</span></li>
         <li><b>The shell makes it an app.</b><span>A generic Objective-C shell, printed from Lean and checked against the view grammar as it builds, renders the tree with UIKit and offers the platform: authentication, Keychain, HTTPS, CloudKit, Bluetooth LE, background tasks.</span></li>
-        <li><b>Xcode builds one app for iPhone, iPad and Mac.</b><span>XcodeGen project, Lean's runtime retargeted for the platform, a check that no Swift was compiled, linked or bundled.</span></li>
+        <li><b>Xcode builds one app for iPhone, iPad and Mac.</b><span>A project generated from the app's Lean manifest, which refuses a capability without its usage text or entitlement; Lean's runtime retargeted for the platform; a check that no Swift was compiled, linked or bundled.</span></li>
       </ol>
     </section>
 
@@ -126,19 +126,20 @@
 
     <section id="status" aria-labelledby="st-h">
       <h2 id="st-h">Where it stands</h2>
-      <p class="sub">Updated 29 October 2026. LeanNative has just moved to its own home; the pieces below are being extracted from a real app, <a href="https://github.com/winnowwallet/winnow-lean">Winnow</a>, a Bitcoin wallet written in Lean.</p>
+      <p class="sub">Updated 30 October 2026. The pieces below were extracted from a real app, <a href="https://github.com/winnowwallet/winnow-lean">Winnow</a>, a Bitcoin wallet written in Lean, and Winnow now runs on them.</p>
       <div class="scroll">
       <table>
         <thead><tr><th>Piece</th><th>Status</th><th>Notes</th></tr></thead>
         <tbody>
           <tr><td class="name">Core: views, sessions, <code>Spec</code>, proofs</td><td><span class="chip ok">Working</span></td><td>Axiom-gated theorems about dispatch, sessions and invariants.</td></tr>
-          <tr><td class="name">UIKit shell and capabilities</td><td><span class="chip ok">Working</span></td><td>iOS simulator and Mac Catalyst (arm64 and x86_64) build and run. <small>Physical devices are not covered yet.</small></td></tr>
-          <tr><td class="name">Background run</td><td><span class="chip ok">Merged</span></td><td>Race-tested with controllable gates. Winnow moves onto it next.</td></tr>
-          <tr><td class="name">Typed platform clients</td><td><span class="chip ok">Merged</span></td><td>Tested against independent wire fixtures and the real shell. Adds an atomic create-only Keychain operation.</td></tr>
-          <tr><td class="name">Test evidence exporter</td><td><span class="chip wip">In review</span></td><td>Records the tested revision when the tests run, not when you export.</td></tr>
-          <tr><td class="name">XCTest helper kit</td><td><span class="chip wip">In progress</span></td><td>Exercised against native-demo's real controls on iOS; Catalyst gestures are separate.</td></tr>
-          <tr><td class="name">Scoped effects and authentication</td><td><span class="chip wip">In progress</span></td><td>Builds on the two merged pieces above.</td></tr>
-          <tr><td class="name">Winnow on LeanNative</td><td><span class="chip soon">Planned</span></td><td>After the pieces above pass their gates. Winnow keeps its own repository and identity.</td></tr>
+          <tr><td class="name">UIKit shell and capabilities</td><td><span class="chip ok">Working</span></td><td>iOS simulator, iPhone (Winnow on TestFlight) and Mac Catalyst on Apple silicon: Catalyst UI tests in CI, and a team-signed run with the real Keychain and Bluetooth LE to a Ledger Nano X. <small>The Catalyst build is universal; Intel Macs are not tested.</small></td></tr>
+          <tr><td class="name">Background run</td><td><span class="chip ok">Merged</span></td><td>Race-tested with controllable gates. Winnow's background chain checks run on it.</td></tr>
+          <tr><td class="name">Typed platform clients</td><td><span class="chip ok">Merged</span></td><td>Tested against independent wire fixtures and the real shell. Adds an atomic create-only Keychain operation. Winnow uses the Keychain, HTTPS, CloudKit and Bluetooth clients.</td></tr>
+          <tr><td class="name">Test evidence exporter</td><td><span class="chip ok">Merged</span></td><td>Records the tested revision when the tests run, not when you export, and leaves out a recording that is too short for the run instead of publishing it.</td></tr>
+          <tr><td class="name">XCTest helper kit</td><td><span class="chip ok">Merged</span></td><td>native-demo's UI tests on iOS and Mac Catalyst, and Winnow's UI journeys.</td></tr>
+          <tr><td class="name">Scoped effects and authentication</td><td><span class="chip ok">Merged</span></td><td>Winnow prepares its iCloud backup in one, across the Face ID prompt.</td></tr>
+          <tr><td class="name">App manifest</td><td><span class="chip ok">Merged</span></td><td>An app describes its Xcode project once, in Lean; generation refuses a capability the app uses without its usage text or entitlement. Winnow's move onto it is in review.</td></tr>
+          <tr><td class="name">Winnow on LeanNative</td><td><span class="chip ok">Shipped</span></td><td>Winnow 0.9.3 and 0.9.4 are built on LeanNative and on TestFlight. Winnow keeps its own repository and identity.</td></tr>
           <tr><td class="name">Versioned rename of the <code>ElmLean</code> identifiers</td><td><span class="chip soon">Not scheduled</span></td><td>The package, modules and C symbols keep their old names so existing apps build unchanged.</td></tr>
         </tbody>
       </table>
