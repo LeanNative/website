@@ -74,6 +74,12 @@ pre .k { color: var(--kw); } pre .s { color: var(--str); } pre .c { color: var(-
 .notes p:last-child { margin: 0; }
 
 
+.runs { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+.run p { margin-bottom: 14px; }
+.run video { display: block; width: min(260px, 100%); aspect-ratio: 720 / 1566; height: auto; margin: 0 auto 14px; border-radius: 22px; background: var(--phone); }
+.shots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.shots img { width: 100%; height: auto; border-radius: 10px; border: 1px solid var(--line); background: var(--code-bg); }
+
 .trust li { margin-bottom: 10px; }
 footer { border-top: 1px solid var(--line); padding: 36px 0 56px; color: var(--muted); font-size: 0.93rem; }
 footer .cols { display: flex; gap: 24px; flex-wrap: wrap; justify-content: space-between; }

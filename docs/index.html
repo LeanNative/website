@@ -25,6 +25,7 @@
     </a>
     <nav aria-label="Main">
       <a href="#how">How it works</a>
+      <a href="#run">See it run</a>
       <a href="#trust">What to trust</a>
       <a href="https://github.com/LeanNative/leannative/issues">Issues</a>
       <a href="https://github.com/LeanNative/leannative">GitHub</a>
@@ -39,7 +40,7 @@
         <p class="lede">LeanNative builds iPhone, iPad and Mac apps from ordinary Lean 4. The functions you test and prove are the ones that run in the app, drawn by a shared UIKit shell, with Mac Catalyst on the Mac. No Swift.</p>
         <div class="actions">
           <a class="btn primary" href="https://github.com/LeanNative/leannative">View on GitHub</a>
-          <a class="btn" href="https://github.com/LeanNative/leannative/tree/main/examples/native-demo">Try native-demo</a>
+          <a class="btn" href="#run">See the examples run</a>
         </div>
         <p class="fine">Open source. Formerly ElmLean. <a href="https://github.com/winnowwallet/winnow-lean">Winnow</a>, a Bitcoin wallet written in Lean, runs on it. Early and moving fast: what is left is in the <a href="https://github.com/LeanNative/leannative/issues">issues</a>.</p>
       </div>
@@ -111,6 +112,35 @@
       </div>
     </section>
 
+    <section id="run" aria-labelledby="run-h">
+      <h2 id="run-h">See it run</h2>
+      <p class="sub">Recorded by LeanNative's CI on every change to main. Each example is driven on an iPhone simulator by its journey, a Lean program on the Mac that taps and types through XCTest and checks every screen against the app's own <code>update</code>. The same journeys run headless against the app itself.</p>
+      <div class="runs">
+        <article class="card run">
+          <h3>simple</h3>
+          <p>The smallest useful app: a counter, a greeting and a list, and one capability. Its manifest lists only that, so the app links neither Bluetooth nor Face ID.</p>
+          <video controls muted playsinline preload="none" poster="journeys/simple/screenshots/simple-launch.png" src="journeys/simple/videos/simple.mp4" aria-label="A recording of the simple example's journey"></video>
+          <div class="shots">
+            <img src="journeys/simple/screenshots/simple-launch.png" alt="Simple at launch: count 0, no notes" width="1206" height="2622" loading="lazy">
+            <img src="journeys/simple/screenshots/simple-counter.png" alt="The count at 2 and the greeting Hello, Ada" width="1206" height="2622" loading="lazy">
+            <img src="journeys/simple/screenshots/simple-notes.png" alt="Two notes added" width="1206" height="2622" loading="lazy">
+          </div>
+          <p class="fine"><a href="https://github.com/LeanNative/leannative/tree/main/examples/simple">Source</a> · <a href="journeys/simple/journey-provenance.json">Provenance</a>: the commit, the CI run, and each file's SHA-256.</p>
+        </article>
+        <article class="card run">
+          <h3>bluetooth-auth</h3>
+          <p>A heart-rate monitor behind Face ID: device authentication, a Bluetooth LE sensor connected, read and written, and the keychain. A simulator has no radio, so in test mode a scripted sensor answers in its place.</p>
+          <video controls muted playsinline preload="none" poster="journeys/bluetooth-auth/screenshots/bluetooth-auth-locked.png" src="journeys/bluetooth-auth/videos/bluetooth-auth.mp4" aria-label="A recording of the bluetooth-auth example's journey"></video>
+          <div class="shots">
+            <img src="journeys/bluetooth-auth/screenshots/bluetooth-auth-locked.png" alt="Locked, with the Unlock button" width="1206" height="2622" loading="lazy">
+            <img src="journeys/bluetooth-auth/screenshots/bluetooth-auth-reading.png" alt="Connected to LeanNative HR, reading 77 bpm" width="1206" height="2622" loading="lazy">
+            <img src="journeys/bluetooth-auth/screenshots/bluetooth-auth-remembered.png" alt="After a new launch, the sensor remembered in the keychain" width="1206" height="2622" loading="lazy">
+          </div>
+          <p class="fine"><a href="https://github.com/LeanNative/leannative/tree/main/examples/bluetooth-auth">Source</a> · <a href="journeys/bluetooth-auth/journey-provenance.json">Provenance</a>: the commit, the CI run, and each file's SHA-256.</p>
+        </article>
+      </div>
+    </section>
+
     <section aria-labelledby="has-h">
       <h2 id="has-h">What an app gets</h2>
       <p class="sub">The framework stays small. Platform services are optional modules an app imports when it needs them.</p>
@@ -120,7 +150,7 @@
         <div class="card"><h3>Background work done right</h3><p>A background run that starts, expires and completes exactly once, drains its work before it reports, and cannot report success after it has been expired.</p></div>
         <div class="card"><h3>Scoped effects</h3><p>Tokens that go stale when the thing they belong to ends, so a late reply never updates the wrong state, including across an authentication prompt.</p></div>
         <div class="card"><h3>UI tests and evidence</h3><p>An XCTest helper kit for the real controls, and an exporter that turns a test run into screenshots, a recording and a provenance manifest that cannot call a failed run a pass.</p></div>
-        <div class="card"><h3>CI for an app</h3><p>A reusable GitHub workflow: build once, run tests in parallel, build for the simulator and device, check for Swift, run the UI tests with a screen recording.</p></div>
+        <div class="card"><h3>CI for an app</h3><p>A reusable GitHub workflow: build once, run tests in parallel, build for the simulator and device, check for Swift and for the frameworks linked, run the journeys with a screen recording. The examples above run through it.</p></div>
       </div>
     </section>
 
