@@ -24,53 +24,20 @@
       LeanNative
     </a>
     <nav aria-label="Main">
-      <a href="#how">How it works</a>
-      <a href="#run">See it run</a>
-      <a href="#trust">What to trust</a>
-      <a href="https://github.com/LeanNative/leannative/issues">Issues</a>
       <a href="https://github.com/LeanNative/leannative">GitHub</a>
     </nav>
   </header>
 
   <main id="main">
-    <section class="hero" aria-labelledby="title" style="border-top:0;padding-top:48px">
-      <div>
-        <p class="eyebrow">NATIVE APPS · WRITTEN IN LEAN 4</p>
-        <h1 id="title">Write the app in Lean.<br><em>Prove what matters.</em></h1>
-        <p class="lede">LeanNative builds iPhone, iPad and Mac apps from ordinary Lean 4. The functions you test and prove are the ones that run in the app, drawn by a shared UIKit shell, with Mac Catalyst on the Mac. No Swift.</p>
-        <div class="actions">
-          <a class="btn primary" href="https://github.com/LeanNative/leannative">View on GitHub</a>
-          <a class="btn" href="#run">See the examples run</a>
-        </div>
-        <p class="fine">Open source. Formerly ElmLean. <a href="https://github.com/winnowwallet/winnow-lean">Winnow</a>, a Bitcoin wallet written in Lean, runs on it. Early and moving fast: what is left is in the <a href="https://github.com/LeanNative/leannative/issues">issues</a>.</p>
+    <section class="hero" aria-labelledby="title">
+      <h1 id="title">Native iOS and Mac apps in Lean&nbsp;4.<br><em>Prove what matters. No Swift.</em></h1>
+      <div class="actions">
+        <a class="btn primary" href="https://github.com/LeanNative/leannative">View on GitHub</a>
+        <a class="btn" href="#run">See it run</a>
       </div>
-      <figure style="margin:0">
-        <div class="device" role="img" aria-label="An illustration of a counter app showing Count: 3 with plus one and reset buttons">
-          <div class="screen" aria-hidden="true">
-            <div class="bar">Counter</div>
-            <div class="title">Count: 3</div>
-            <div class="row"><span class="p">+1</span><span>Reset</span></div>
-            <div class="cap">drawn by the UIKit shell from the Lean view below</div>
-          </div>
-        </div>
-        <figcaption class="device-cap">Illustration of the example further down the page.</figcaption>
-      </figure>
     </section>
 
-    <section id="how" aria-labelledby="how-h">
-      <h2 id="how-h">One model, from proof to pixels</h2>
-      <p class="sub">An app is a Lean package with the Elm shape: a <code>Model</code>, the <code>Msg</code>s it can receive, an <code>update</code> and a <code>view</code>. Effects are explicit commands. Everything else is the framework.</p>
-      <ol class="flow">
-        <li><b>Write the app and its invariants in Lean.</b><span>Typed views can only emit messages <code>update</code> handles. You state the properties you need and prove that every message preserves them.</span></li>
-        <li><b>Lean checks the proofs and compiles to C.</b><span>The same <code>update</code> and <code>view</code> run in headless tests and in the app. An axiom gate fails the build if a theorem leans on anything unexpected.</span></li>
-        <li><b>The shell makes it an app.</b><span>A generic Objective-C shell, printed from Lean and checked against the view grammar as it builds, renders the tree with UIKit and offers the platform: authentication, Keychain, HTTPS, CloudKit, Bluetooth LE, background tasks.</span></li>
-        <li><b>Xcode builds one app for iPhone, iPad and Mac.</b><span>A project generated from the app's Lean manifest, which refuses a capability without its usage text or entitlement; Lean's runtime retargeted for the platform; a check that no Swift was compiled, linked or bundled.</span></li>
-      </ol>
-    </section>
-
-    <section aria-labelledby="ex-h">
-      <h2 id="ex-h">A whole app, and a proof about it</h2>
-      <p class="sub">This compiles against the framework today. The theorem is the one claim it makes; the framework turns it into a guarantee about every session the app can reach.</p>
+    <section aria-label="A whole app, and a proof about it">
       <div class="split">
         <pre aria-label="Counter app in Lean"><code><span class="k">structure</span> <span class="t">Model</span> <span class="k">where</span>
   count : <span class="t">Nat</span>
@@ -90,8 +57,7 @@
 
 <span class="k">def</span> app : <span class="t">App Model Msg</span> :=
   { init := { count := 0 }, update, view }</code></pre>
-        <div>
-          <pre aria-label="The invariant and its proof"><code><span class="c">/-- The count never passes 10,
+        <pre aria-label="The invariant and its proof"><code><span class="c">/-- The count never passes 10,
     in any session the app can reach. -/</span>
 <span class="k">def</span> spec : <span class="t">Spec</span> app <span class="k">where</span>
   Inv m := m.count ≤ 10
@@ -104,95 +70,36 @@
 
 <span class="c">-- from the framework, for every app:</span>
 <span class="c">-- Spec.reachable_inv : S.Inv (Session.reach app rs).model</span></code></pre>
-          <div class="notes" style="margin-top:18px">
-            <p>Three obligations: the invariant holds at the start, every message keeps it, and every control the view offers produces a sensible message. From those the framework proves the invariant after <em>any</em> sequence of events.</p>
-            <p>That is a statement about the state transitions. It says nothing about how UIKit draws them; <a href="#trust">that part is tested, not proven</a>.</p>
-          </div>
-        </div>
       </div>
+      <p class="fine">The proof covers <code>update</code>, after any sequence of events. How UIKit draws it is tested, not proven.</p>
+    </section>
+
+    <section aria-label="Build it">
+      <pre aria-label="Building the app for the iOS simulator"><code><span class="c"># the app above, built for the iOS simulator</span>
+APP_DIR=my-app APP_ROOT=MyApp SCHEME=MyApp \
+  .lake/packages/leannative/framework/native/ci/build-ios Debug iossim</code></pre>
     </section>
 
     <section id="run" aria-labelledby="run-h">
       <h2 id="run-h">See it run</h2>
-      <p class="sub">Recorded by LeanNative's CI on every change to main. Each example is driven on an iPhone simulator by its journey, a Lean program on the Mac that taps and types through XCTest and checks every screen against the app's own <code>update</code>. The same journeys run headless against the app itself.</p>
       <div class="runs">
-        <article class="card run">
-          <h3>simple</h3>
-          <p>The smallest useful app: a counter, a greeting and a list, and one capability. Its manifest lists only that, so the app links neither Bluetooth nor Face ID.</p>
+        <article class="run">
           <video controls muted playsinline preload="none" poster="journeys/simple/screenshots/simple-launch.png" src="journeys/simple/videos/simple.mp4" aria-label="A recording of the simple example's journey"></video>
-          <div class="shots">
-            <img src="journeys/simple/screenshots/simple-launch.png" alt="Simple at launch: count 0, no notes" width="1206" height="2622" loading="lazy">
-            <img src="journeys/simple/screenshots/simple-counter.png" alt="The count at 2 and the greeting Hello, Ada" width="1206" height="2622" loading="lazy">
-            <img src="journeys/simple/screenshots/simple-notes.png" alt="Two notes added" width="1206" height="2622" loading="lazy">
-          </div>
-          <p class="fine"><a href="https://github.com/LeanNative/leannative/tree/main/examples/simple">Source</a> · <a href="journeys/simple/journey-provenance.json">Provenance</a>: the commit, the CI run, and each file's SHA-256.</p>
+          <p class="fine"><b>simple</b> · <a href="https://github.com/LeanNative/leannative/tree/main/examples/simple">Source</a> · <a href="journeys/simple/journey-provenance.json">Provenance</a></p>
         </article>
-        <article class="card run">
-          <h3>bluetooth-auth</h3>
-          <p>A heart-rate monitor behind Face ID: device authentication, a Bluetooth LE sensor connected, read and written, and the keychain. A simulator has no radio, so in test mode a scripted sensor answers in its place.</p>
+        <article class="run">
           <video controls muted playsinline preload="none" poster="journeys/bluetooth-auth/screenshots/bluetooth-auth-locked.png" src="journeys/bluetooth-auth/videos/bluetooth-auth.mp4" aria-label="A recording of the bluetooth-auth example's journey"></video>
-          <div class="shots">
-            <img src="journeys/bluetooth-auth/screenshots/bluetooth-auth-locked.png" alt="Locked, with the Unlock button" width="1206" height="2622" loading="lazy">
-            <img src="journeys/bluetooth-auth/screenshots/bluetooth-auth-reading.png" alt="Connected to LeanNative HR, reading 77 bpm" width="1206" height="2622" loading="lazy">
-            <img src="journeys/bluetooth-auth/screenshots/bluetooth-auth-remembered.png" alt="After a new launch, the sensor remembered in the keychain" width="1206" height="2622" loading="lazy">
-          </div>
-          <p class="fine"><a href="https://github.com/LeanNative/leannative/tree/main/examples/bluetooth-auth">Source</a> · <a href="journeys/bluetooth-auth/journey-provenance.json">Provenance</a>: the commit, the CI run, and each file's SHA-256.</p>
+          <p class="fine"><b>bluetooth-auth</b> · <a href="https://github.com/LeanNative/leannative/tree/main/examples/bluetooth-auth">Source</a> · <a href="journeys/bluetooth-auth/journey-provenance.json">Provenance</a></p>
         </article>
       </div>
-    </section>
-
-    <section aria-labelledby="has-h">
-      <h2 id="has-h">What an app gets</h2>
-      <p class="sub">The framework stays small. Platform services are optional modules an app imports when it needs them.</p>
-      <div class="grid">
-        <div class="card"><h3>Native interfaces</h3><p>Lists, navigation, tabs, sheets, toolbars, text input, pickers, QR codes and share sheets, drawn by UIKit. On the Mac, resizable windows, sidebar tabs and popovers.</p></div>
-        <div class="card"><h3>Typed platform clients</h3><p>Device authentication, Keychain, HTTPS with SOCKS5, CloudKit and Bluetooth LE as typed requests and results. Denied, cancelled, unsupported, malformed and failed are different answers.</p></div>
-        <div class="card"><h3>Background work done right</h3><p>A background run that starts, expires and completes exactly once, drains its work before it reports, and cannot report success after it has been expired.</p></div>
-        <div class="card"><h3>Scoped effects</h3><p>Tokens that go stale when the thing they belong to ends, so a late reply never updates the wrong state, including across an authentication prompt.</p></div>
-        <div class="card"><h3>UI tests and evidence</h3><p>An XCTest helper kit for the real controls, and an exporter that turns a test run into screenshots, a recording and a provenance manifest that cannot call a failed run a pass.</p></div>
-        <div class="card"><h3>CI for an app</h3><p>A reusable GitHub workflow: build once, run tests in parallel, build for the simulator and device, check for Swift and for the frameworks linked, run the journeys with a screen recording. The examples above run through it.</p></div>
-      </div>
-    </section>
-
-
-    <section id="trust" aria-labelledby="tr-h">
-      <h2 id="tr-h">What is proven, and what is only tested</h2>
-      <p class="sub">Writing an app in Lean does not make it correct. A proof covers the property it states, under its assumptions.</p>
-      <div class="split">
-        <div class="card">
-          <h3>Proven by Lean</h3>
-          <ul class="trust">
-            <li>The framework's theorems about views and sessions: a control is advertised exactly when dispatching it yields a message, and the session always shows the view of its model.</li>
-            <li>Any invariant <em>you</em> prove your <code>update</code> preserves holds after every reachable event sequence.</li>
-          </ul>
-        </div>
-        <div class="card">
-          <h3>Trusted and tested</h3>
-          <ul class="trust">
-            <li>The UIKit renderer, the capabilities and the C shim, driven in the simulator and under Mac Catalyst.</li>
-            <li>Lean's compiler and runtime, UIKit, iOS and macOS.</li>
-            <li>The runtime integration is experimental: Lean's macOS libraries are retargeted by rewriting their platform metadata, which Lean does not support as cross-compilation.</li>
-            <li>Typed clients check the shape of what the platform answers, not that the platform did the right thing.</li>
-          </ul>
-        </div>
-      </div>
-      <p class="fine">There is no AppKit renderer and no web target; the Mac app is a Mac Catalyst app. Background tasks do not run under Mac Catalyst.</p>
     </section>
   </main>
 
   <footer>
-    <div class="cols">
-      <div>
-        <strong style="color:var(--fg)">LeanNative</strong><br>
-        Formerly <a href="https://github.com/posix4e/elmlean">ElmLean</a>. History and tags carried over from <code>v0.1.0</code>.
-      </div>
-      <div>
-        <a href="https://github.com/LeanNative/leannative">Source</a> ·
-        <a href="https://github.com/LeanNative/leannative/blob/main/framework/native/README.md">Native platform guide</a> ·
-        <a href="https://github.com/LeanNative/leannative/issues">Issues</a> ·
-        <a href="https://github.com/winnowwallet/winnow-lean">Winnow</a>
-      </div>
-    </div>
+    <a href="https://github.com/LeanNative/leannative">Source</a> ·
+    <a href="https://github.com/LeanNative/leannative/blob/main/framework/native/README.md">Native platform guide</a> ·
+    <a href="https://github.com/LeanNative/leannative/issues">Issues</a> ·
+    <a href="https://github.com/winnowwallet/winnow-lean">Winnow</a>, a Bitcoin wallet built on it
   </footer>
 </div>
 </body>
