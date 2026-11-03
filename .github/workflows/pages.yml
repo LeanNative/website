@@ -1,0 +1,52 @@
+name: Pages
+# leannative.com: docs/, with the LeanNative examples' newest journey media from LeanNative's CI
+# (scripts/fetch-journey-media), deployed by GitHub Pages. On a push to main, every six hours (an example's
+# media change when LeanNative's main does), and by hand; a pull request builds and checks the site and deploys
+# nothing. When the media cannot be taken or checked, nothing is deployed and the site stays as it was.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: pages-${{ github.event.pull_request.number || github.ref }}
+  # a deploy is never cut off halfway; a pull request's older run is
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: The examples' journey media, from LeanNative's CI
+        env:
+          # the workflow's own token: GitHub serves artifact zips only to authenticated requests
+          GITHUB_TOKEN: ${{ github.token }}
+        run: scripts/fetch-journey-media
+      - name: Every media file the page names is here
+        run: scripts/check-site
+      - name: The site, for Pages
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: docs
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

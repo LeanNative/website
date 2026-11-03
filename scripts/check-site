@@ -1,0 +1,12 @@
+#!/bin/bash
+# Every file docs/index.html names under journeys/ is there (scripts/fetch-journey-media puts them there), so the
+# page and the examples' journeys cannot drift apart: a screenshot a journey stopped taking fails the build.
+set -euo pipefail
+cd "$(dirname "$0")/../docs"
+missing=0
+names=$(grep -o '\(src\|href\|poster\)="journeys/[^"]*"' index.html | sed 's/^[a-z]*="//; s/"$//' | sort -u)
+for f in $names; do
+  [ -s "$f" ] || { echo "index.html names $f, which is not here"; missing=1; }
+done
+[ "$missing" = 0 ] && echo "every journeys/ file the page names is here ($(wc -l <<< "$names" | tr -d ' '))"
+exit "$missing"

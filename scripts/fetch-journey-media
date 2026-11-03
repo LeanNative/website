@@ -1,0 +1,193 @@
+#!/usr/bin/env python3
+"""Take the LeanNative examples' newest journey media from LeanNative's CI into docs/journeys/, for this build only.
+
+  scripts/fetch-journey-media [--repo LeanNative/leannative] [--branch main] [--workflow check.yml]
+                              [--out docs/journeys] [--from DIR]
+
+Each example's CI job (check.yml's `examples`, LeanNative's ios-app.yml) publishes its journey on an iPhone
+simulator as the artifact journey-media-<example>: screenshots, a recording, and journey-provenance.json. This
+finds the newest successful push run of the workflow on the branch that still has every example's artifact,
+downloads them, and checks each before writing anything: a version 2 journey-provenance.json for that example
+whose tests all passed and whose run is that run, and every screenshot and the video it lists present with the
+SHA-256 and byte count it names, none over 25 MiB. Only the listed files are written, to
+docs/journeys/<example>/ (screenshots/<name>.png, videos/<example>.mp4, journey-provenance.json).
+
+--from DIR takes them from DIR/<example>/ instead (journey-media's output, for a local preview); the run is not
+checked then. LeanNative is public: its runs are listed without a token, but GitHub serves an artifact's zip
+only to an authenticated request, so the download uses GITHUB_TOKEN (in Actions, the Pages workflow's own
+token), else GH_TOKEN. Any failure exits 1 with the reason: the Pages workflow then deploys nothing, and the
+site stays as it was. These are build outputs: never commit them.
+"""
+import argparse
+import hashlib
+import io
+import json
+import os
+from pathlib import Path
+import re
+import sys
+import urllib.error
+import urllib.request
+import zipfile
+
+ROOT = Path(__file__).resolve().parent.parent
+API = "https://api.github.com"
+EXAMPLES = ("simple", "bluetooth-auth")
+MANIFEST = "journey-provenance.json"
+MAX_BYTES = 25 * 1024 * 1024
+MAX_ARCHIVE = 256 * 1024 * 1024
+NAME = re.compile(r"[a-z0-9][a-z0-9-]*")
+COMMIT = re.compile(r"[0-9a-f]{40}")
+
+
+class Unusable(Exception):
+    pass
+
+
+class Client:
+    def __init__(self, token):
+        self.token = token
+
+    def request(self, url, token=None):
+        request = urllib.request.Request(url if url.startswith("https://") else API + url)
+        request.add_header("Accept", "application/vnd.github+json")
+        request.add_header("X-GitHub-Api-Version", "2022-11-28")
+        request.add_header("User-Agent", "leannative-website-fetch-journey-media")
+        if token:
+            # unredirected: the artifact download redirects to blob storage, which must not see the token
+            request.add_unredirected_header("Authorization", f"Bearer {token}")
+        return urllib.request.urlopen(request, timeout=120)
+
+    def json(self, path):
+        try:
+            with self.request(path, self.token) as response:
+                return json.load(response)
+        except urllib.error.HTTPError as e:
+            if e.code in (401, 403) and self.token:
+                with self.request(path) as response:
+                    return json.load(response)
+            raise
+
+    def download(self, url):
+        if not self.token:
+            raise Unusable("GitHub serves an artifact only to an authenticated request: set GITHUB_TOKEN")
+        with self.request(url, self.token) as response:
+            data = response.read(MAX_ARCHIVE + 1)
+        if len(data) > MAX_ARCHIVE:
+            raise Unusable(f"the artifact is over {MAX_ARCHIVE} bytes")
+        return data
+
+
+def find(client, repo, branch, workflow):
+    """The newest successful push run on the branch with every example's artifact: (run, {example: artifact})."""
+    runs = client.json(f"/repos/{repo}/actions/workflows/{workflow}/runs?branch={branch}&event=push&status=success&per_page=20")
+    for run in runs.get("workflow_runs", []):
+        artifacts = client.json(f"/repos/{repo}/actions/runs/{run['id']}/artifacts?per_page=100").get("artifacts", [])
+        named = {a["name"]: a for a in artifacts if not a.get("expired")}
+        wanted = {e: named.get(f"journey-media-{e}") for e in EXAMPLES}
+        if all(wanted.values()):
+            return run, wanted
+    raise Unusable(f"no successful push run of {workflow} on {branch} in the last 20 has every example's journey media")
+
+
+def digest(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def verify(example, files, run_url=None):
+    """The files to publish for `example`, from `files` (path → bytes) as the artifact holds them."""
+    if MANIFEST not in files:
+        raise Unusable(f"{example}: no {MANIFEST}")
+    try:
+        m = json.loads(files[MANIFEST])
+    except ValueError as e:
+        raise Unusable(f"{example}: {MANIFEST} is not JSON: {e}")
+    if m.get("version") != 2:
+        raise Unusable(f"{example}: provenance version {m.get('version')!r}, not 2")
+    if m.get("app") != example:
+        raise Unusable(f"{example}: the provenance is the app {m.get('app')!r}'s")
+    tests = m.get("tests") or []
+    if m.get("result") != "passed" or not tests or any(t.get("result") != "passed" for t in tests):
+        raise Unusable(f"{example}: not every journey passed")
+    if run_url is not None and m.get("run_url") != run_url:
+        raise Unusable(f"{example}: recorded by {m.get('run_url')!r}, not by {run_url}")
+    if not COMMIT.fullmatch(str(m.get("source_sha", ""))):
+        raise Unusable(f"{example}: no source commit")
+
+    def take(path, entry):
+        data = files.get(path)
+        if data is None:
+            raise Unusable(f"{example}: {path} is listed but not in the artifact")
+        if len(data) > MAX_BYTES:
+            raise Unusable(f"{example}: {path} is over 25 MiB")
+        if len(data) != entry.get("bytes") or digest(data) != entry.get("sha256"):
+            raise Unusable(f"{example}: {path} is not the file its provenance names")
+        return data
+
+    out = {MANIFEST: files[MANIFEST]}
+    shots = m.get("screenshots") or []
+    if not shots:
+        raise Unusable(f"{example}: no screenshots")
+    for s in shots:
+        name = s.get("name", "")
+        if not NAME.fullmatch(name):
+            raise Unusable(f"{example}: a screenshot named {name!r}")
+        out[f"screenshots/{name}.png"] = take(f"screenshots/{name}.png", s)
+    video = m.get("video") or {}
+    path = video.get("path", "")
+    if path != f"videos/{example}.mp4":
+        raise Unusable(f"{example}: the video is {path!r}, not videos/{example}.mp4")
+    out[path] = take(path, video)
+    return out
+
+
+def unzip(data):
+    with zipfile.ZipFile(io.BytesIO(data)) as z:
+        return {i.filename: z.read(i) for i in z.infolist() if not i.is_dir()}
+
+
+def read_dir(d):
+    return {str(p.relative_to(d)): p.read_bytes() for p in d.rglob("*") if p.is_file()}
+
+
+def place(files, destination):
+    if destination.exists():
+        for p in sorted(destination.rglob("*"), reverse=True):
+            p.unlink() if p.is_file() else p.rmdir()
+    for path, data in files.items():
+        target = destination / path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(data)
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--repo", default="LeanNative/leannative")
+    ap.add_argument("--branch", default="main")
+    ap.add_argument("--workflow", default="check.yml")
+    ap.add_argument("--out", type=Path, default=ROOT / "docs" / "journeys")
+    ap.add_argument("--from", dest="source", type=Path, help="take DIR/<example>/ instead of CI's artifacts")
+    args = ap.parse_args(argv)
+    try:
+        taken = {}
+        if args.source:
+            for e in EXAMPLES:
+                taken[e] = verify(e, read_dir(args.source / e))
+            where = str(args.source)
+        else:
+            client = Client(os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN"))
+            run, artifacts = find(client, args.repo, args.branch, args.workflow)
+            for e, a in artifacts.items():
+                taken[e] = verify(e, unzip(client.download(a["archive_download_url"])), run["html_url"])
+            where = f"{run['html_url']} (commit {run['head_sha']})"
+        for e, files in taken.items():
+            place(files, args.out / e)
+            print(f"{e}: {len(files) - 2} screenshots and the video, from {where}")
+        return 0
+    except (Unusable, urllib.error.URLError, zipfile.BadZipFile, OSError) as e:
+        print(f"fetch-journey-media: {e}", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
